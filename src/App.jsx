@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Outlet, useParams, useNavigate } from "react-router-dom";
 import * as api from './api';
 
 function App() {
@@ -12,13 +12,52 @@ function App() {
       </nav>
 
       <Routes>
-        <Route path="goods" element={<GoodsPage />} />
+        <Route path="goods" element={<GoodsPage />}>
+          <Route path=":goodId" element={<GoodDetails />} />
+        </Route>
+
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="*" element={<p>Not found</p>} />
       </Routes>
     </div>
   );
 }
+
+const GoodDetails = () => {
+  const { goodId } = useParams();
+  const navigate = useNavigate();
+
+  const [good, setGood] = useState(null);
+
+  const loadGoodDetails = async (id) => {
+    try {
+      const goodDetails = await api.getGood(id);
+
+      setGood(goodDetails);
+    } catch (error) {
+      console.dir(error);
+      navigate('../');
+    }
+  }
+
+  useEffect(() => {
+    loadGoodDetails(goodId);
+  }, [goodId]);
+
+  if (!good) {
+    return <p>Loading {goodId} ...</p>
+  }
+
+  return (
+    <form>
+      <input type="text" defaultValue={good.title}/>
+      {good.categoryId}
+      <select defaultValue={good.categoryId}>
+        <option value="">Select Category</option>
+      </select>
+    </form>
+  )
+};
 
 const GoodsPage = () => {
   const [goods, setGoods] = useState([]);
@@ -50,12 +89,14 @@ const GoodsPage = () => {
         <ul>
           {goods.map(good => (
             <li key={good.id}>
-              {good.title}
+              <Link to={good.id}>{good.title}</Link>
             </li>
           ))}
         </ul>
       </div>
-      <div className="content"></div>
+      <div className="content">
+        <Outlet />
+      </div>
     </div>
   )
 }
