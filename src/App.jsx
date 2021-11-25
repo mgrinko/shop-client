@@ -24,15 +24,29 @@ const GoodsPage = () => {
   const [goods, setGoods] = useState([]);
 
   useEffect(() => {
-    api.getGoods()
-      .then(goods => {
-        setGoods(goods);
-      })
+    loadGoods();
   }, []);
+
+  const loadGoods = async () => {
+    const goodsFromServer = await api.getGoods();
+
+    setGoods(goodsFromServer);
+  }
+
+  const addGood = async () => {
+    await api.addGood({
+      title: `Good ${new Date().toLocaleTimeString()}`,
+      categoryId: '123',
+    });
+      
+    loadGoods();
+  };
 
   return (
     <div className="goods">
       <div className="sidebar">
+        <button onClick={addGood}>Add</button>
+
         <ul>
           {goods.map(good => (
             <li key={good.id}>
